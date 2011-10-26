@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="nginx.xsl"?>
+<conf project="weather-mobile" xscript="weather">
+    <hosts>
+        <host tld="ru,ua,by,kz">
+            <name>m.pogoda</name>
+            <aliases tld="ru">
+                <alias>m.weather</alias>
+                <alias>pda.pogoda</alias>
+                <alias>wap.pogoda</alias>
+                <alias>pda.weather</alias>
+                <alias>wap.weather</alias>
+                <alias>weather.wap</alias>
+                <alias>pogoda.wap</alias>
+                <alias tld="mobi">weather</alias>
+                <alias tld="mobi">pogoda</alias>
+                <alias>pogoda.pda</alias>
+                <alias>weather.pda</alias>
+                <alias>weather.wap</alias>
+                <alias>iweather</alias>
+            </aliases>
+        </host>
+        <host>
+            <name>tel.pogoda</name>
+            <aliases>
+                <alias>tel.weather</alias>
+            </aliases>
+        </host>
+        <host tld="com.tr">
+            <name>m.hava</name>
+        </host>
+    </hosts>
+
+    <locations>
+        <location>lego-xml-deny</location>
+        <location>404-pda-xml</location>
+    </locations>
+
+    <rewrites>
+        <rewrite regexp="^/([0-9]+)/$">/?city=$1</rewrite>
+        <rewrite regexp="^/([0-9]+)/\?(.*)$">/?city=$1&amp;$2</rewrite>
+    </rewrites>
+</conf>
