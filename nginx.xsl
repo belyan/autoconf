@@ -42,6 +42,7 @@
 
         <xsl:text>&nl;</xsl:text>
         <xsl:text>}</xsl:text>
+        <xsl:apply-templates select="hosts/host" mode="aliases"/>
     </xsl:template>
 
     <!-- Список хостов -->
@@ -95,6 +96,9 @@
         <xsl:param name="tld"/>
         <xsl:param name="mode"/>
         <xsl:variable name="host-name">
+            <xsl:if test="$mode = 'www'">
+                <xsl:text>www.</xsl:text>
+            </xsl:if>
             <xsl:value-of select="."/>
             <xsl:text>.</xsl:text>
             <xsl:if test="$mode = 'regexp'">
@@ -168,25 +172,69 @@
         <xsl:text>;</xsl:text>
     </xsl:template>
 
-    <!--xsl:template match="hosts" mode="aliases">
+    <!-- Алиасы хоста -->
+    <xsl:template match="host" mode="aliases">
+        <xsl:variable name="sld" select="x:if(string(@sld), @sld, $default/sld)"/>
+        <xsl:variable name="tld" select="x:if(string(@tld), @tld, $default/tld)"/>
+
         <xsl:text>&nl;&nl;</xsl:text>
         <xsl:text>server {</xsl:text>
         <xsl:text>&nl;&tab;</xsl:text>
 	    <xsl:text>include listen;</xsl:text>
-        <xsl:apply-templates select="host" mode="alias"/>
+
+        <xsl:text>&nl;&tab;</xsl:text>
+        <xsl:text>server_name </xsl:text>
+        <xsl:apply-templates select="name">
+            <xsl:with-param name="sld" select="$sld"/>
+            <xsl:with-param name="tld" select="$tld"/>
+            <xsl:with-param name="mode">www</xsl:with-param>
+        </xsl:apply-templates>
+        <xsl:text>;</xsl:text>
+
+        <xsl:apply-templates select="aliases"/>
+
+        <xsl:text>&nl;&tab;</xsl:text>
+        <xsl:text>rewrite ^/ http://</xsl:text>
+        <xsl:apply-templates select="name">
+            <xsl:with-param name="sld" select="$sld"/>
+            <xsl:with-param name="tld" select="$tld"/>
+        </xsl:apply-templates>
+        <xsl:text>/$1 permanent;</xsl:text>
         <xsl:text>&nl;</xsl:text>
         <xsl:text>}</xsl:text>
     </xsl:template>
 
-    <xsl:template match="host" mode="alias">
+    <xsl:template match="aliases">
         <xsl:text>&nl;&tab;</xsl:text>
-        <xsl:text>server_name www.</xsl:text>
-        <xsl:apply-templates select="name"/>
+        <xsl:text>server_name </xsl:text>
+        <xsl:apply-templates select="alias"/>
         <xsl:text>;</xsl:text>
         <xsl:text>&nl;&tab;</xsl:text>
-        <xsl:text>rewrite ^/ http://</xsl:text>
-        <xsl:apply-templates select="name"/>
-        <xsl:text>/$1 permanent;</xsl:text>
-    </xsl:template-->
+        <xsl:text>server_name </xsl:text>
+        <xsl:apply-templates select="alias">
+            <xsl:with-param name="mode">www</xsl:with-param>
+        </xsl:apply-templates>
+        <xsl:text>;</xsl:text>
+    </xsl:template>
+
+    <!-- Алиас -->
+    <xsl:template match="alias">
+        <xsl:param name="mode"/>
+
+        <xsl:variable name="sld" select="x:if(string(@sld), @sld, x:if(string(ancestor::*/@sld), ancestor::*/@sld, $default/sld))"/>
+        <xsl:variable name="tld" select="x:if(string(@tld), @tld, x:if(string(ancestor::*/@tld), ancestor::*/@tld, $default/tld))"/>
+
+        <xsl:if test="position() &gt; 1">
+            <xsl:text> </xsl:text>
+        </xsl:if>
+        <xsl:if test="$mode = 'www'">
+            <xsl:text>www.</xsl:text>
+        </xsl:if>
+        <xsl:value-of select="."/>
+        <xsl:text>.</xsl:text>
+        <xsl:value-of select="$sld"/>
+        <xsl:text>.</xsl:text>
+        <xsl:value-of select="$tld"/>
+    </xsl:template>
 
 </xsl:stylesheet>
