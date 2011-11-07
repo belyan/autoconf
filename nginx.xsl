@@ -28,7 +28,7 @@
     <xsl:template match="conf"/>
     <xsl:template match="conf[string(hosts/host/name)]">
         <xsl:text># Automatically generated file. Do not edit it manually.</xsl:text>
-        <xsl:text>&nl;&nl;</xsl:text>
+        <xsl:text>&nl;</xsl:text>
         <xsl:text>server {</xsl:text>
 
         <xsl:text>&nl;&tab;</xsl:text>
@@ -43,6 +43,7 @@
         <xsl:text>&nl;</xsl:text>
         <xsl:text>}</xsl:text>
         <xsl:apply-templates select="hosts/host" mode="aliases"/>
+        <xsl:text>&nl;</xsl:text>
     </xsl:template>
 
     <!-- Список хостов -->
@@ -180,7 +181,7 @@
         <xsl:text>&nl;&nl;</xsl:text>
         <xsl:text>server {</xsl:text>
         <xsl:text>&nl;&tab;</xsl:text>
-	    <xsl:text>include listen;</xsl:text>
+	    <xsl:text>include listen;&nl;</xsl:text>
 
         <xsl:text>&nl;&tab;</xsl:text>
         <xsl:text>server_name </xsl:text>
@@ -214,7 +215,7 @@
         <xsl:apply-templates select="alias">
             <xsl:with-param name="mode">www</xsl:with-param>
         </xsl:apply-templates>
-        <xsl:text>;</xsl:text>
+        <xsl:text>;&nl;</xsl:text>
     </xsl:template>
 
     <!-- Алиас -->
