@@ -6,9 +6,9 @@
 ]>
 <xsl:stylesheet
     xmlns:str="http://exslt.org/strings"
-    xmlns:x="http://www.yandex.ru/xscript"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    exclude-result-prefixes="x"
+    xmlns:ya="urn:yandex-functions"
+    exclude-result-prefixes="ya"
     extension-element-prefixes="str"
     version="1.0">
 
@@ -56,8 +56,8 @@
     <!-- Хост -->
     <xsl:template match="host">
         <xsl:variable name="name" select="name"/>
-        <xsl:variable name="sld" select="x:if(string(@sld), @sld, $default/sld)"/>
-        <xsl:variable name="tld" select="x:if(string(@tld), @tld, $default/tld)"/>
+        <xsl:variable name="sld" select="ya:if(string(@sld), @sld, $default/sld)"/>
+        <xsl:variable name="tld" select="ya:if(string(@tld), @tld, $default/tld)"/>
 
         <xsl:text>&nl;&tab;</xsl:text>
         <xsl:text>server_name </xsl:text>
@@ -75,8 +75,8 @@
 
     <xsl:template match="host" mode="regexp">
         <xsl:variable name="name" select="name"/>
-        <xsl:variable name="sld" select="x:if(string(@sld), @sld, $default/sld)"/>
-        <xsl:variable name="tld" select="x:if(string(@tld), @tld, $default/tld)"/>
+        <xsl:variable name="sld" select="ya:if(string(@sld), @sld, $default/sld)"/>
+        <xsl:variable name="tld" select="ya:if(string(@tld), @tld, $default/tld)"/>
 
         <xsl:for-each select="str:split($tld, ',')">
             <xsl:text>&nl;&tab;</xsl:text>
@@ -109,7 +109,7 @@
             <xsl:text>.</xsl:text>
             <xsl:value-of select="$tld"/>
         </xsl:variable>
-        <xsl:value-of select="x:if($mode = 'regexp', str:replace($host-name, '.', '\.'), $host-name)"/>
+        <xsl:value-of select="ya:if($mode = 'regexp', str:replace($host-name, '.', '\.'), $host-name)"/>
     </xsl:template>
 
     <!-- Корневая папка -->
@@ -174,8 +174,8 @@
 
     <!-- Алиасы хоста -->
     <xsl:template match="host" mode="aliases">
-        <xsl:variable name="sld" select="x:if(string(@sld), @sld, $default/sld)"/>
-        <xsl:variable name="tld" select="x:if(string(@tld), @tld, $default/tld)"/>
+        <xsl:variable name="sld" select="ya:if(string(@sld), @sld, $default/sld)"/>
+        <xsl:variable name="tld" select="ya:if(string(@tld), @tld, $default/tld)"/>
 
         <xsl:text>&nl;&nl;</xsl:text>
         <xsl:text>server {</xsl:text>
@@ -221,8 +221,8 @@
     <xsl:template match="alias">
         <xsl:param name="mode"/>
 
-        <xsl:variable name="sld" select="x:if(string(@sld), @sld, x:if(string(ancestor::*/@sld), ancestor::*/@sld, $default/sld))"/>
-        <xsl:variable name="tld" select="x:if(string(@tld), @tld, x:if(string(ancestor::*/@tld), ancestor::*/@tld, $default/tld))"/>
+        <xsl:variable name="sld" select="ya:if(string(@sld), @sld, ya:if(string(ancestor::*/@sld), ancestor::*/@sld, $default/sld))"/>
+        <xsl:variable name="tld" select="ya:if(string(@tld), @tld, ya:if(string(ancestor::*/@tld), ancestor::*/@tld, $default/tld))"/>
 
         <xsl:if test="position() &gt; 1">
             <xsl:text> </xsl:text>
