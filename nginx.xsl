@@ -175,28 +175,48 @@
 
     <!-- Алиасы хоста -->
     <xsl:template match="host" mode="aliases">
+        <xsl:variable name="name" select="name"/>
         <xsl:variable name="sld" select="ya:if(string(@sld), @sld, $default/sld)"/>
         <xsl:variable name="tld" select="ya:if(string(@tld), @tld, $default/tld)"/>
+
+        <xsl:for-each select="str:split($tld, ',')">
+            <xsl:apply-templates select="$name" mode="aliases">
+                <xsl:with-param name="sld" select="$sld"/>
+                <xsl:with-param name="tld" select="."/>
+            </xsl:apply-templates>
+        </xsl:for-each>
+    </xsl:template>
+
+    <xsl:template match="host/name" mode="aliases">
+        <xsl:param name="sld"/>
+        <xsl:param name="tld"/>
 
         <xsl:text>&nl;&nl;</xsl:text>
         <xsl:text>server {</xsl:text>
         <xsl:text>&nl;&tab;</xsl:text>
-	    <xsl:text>include listen;&nl;</xsl:text>
-
+	    <xsl:text>include listen;</xsl:text>
         <xsl:text>&nl;&tab;</xsl:text>
         <xsl:text>server_name </xsl:text>
-        <xsl:apply-templates select="name">
+        <xsl:apply-templates select=".">
             <xsl:with-param name="sld" select="$sld"/>
             <xsl:with-param name="tld" select="$tld"/>
             <xsl:with-param name="mode">www</xsl:with-param>
         </xsl:apply-templates>
         <xsl:text>;</xsl:text>
 
-        <xsl:apply-templates select="aliases"/>
+        <!-- TODO: Мультидоменные алиасы -->
+        <xsl:choose>
+            <xsl:when test="string(../aliases/@tld)">
+                <xsl:apply-templates select="../aliases[@tld = $tld]"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-templates select="../aliases"/>
+            </xsl:otherwise>
+        </xsl:choose>
 
         <xsl:text>&nl;&tab;</xsl:text>
         <xsl:text>rewrite ^/ http://</xsl:text>
-        <xsl:apply-templates select="name">
+        <xsl:apply-templates select=".">
             <xsl:with-param name="sld" select="$sld"/>
             <xsl:with-param name="tld" select="$tld"/>
         </xsl:apply-templates>
@@ -205,6 +225,7 @@
         <xsl:text>}</xsl:text>
     </xsl:template>
 
+    <!-- Список алиасов -->
     <xsl:template match="aliases">
         <xsl:text>&nl;&tab;</xsl:text>
         <xsl:text>server_name </xsl:text>
@@ -215,15 +236,15 @@
         <xsl:apply-templates select="alias">
             <xsl:with-param name="mode">www</xsl:with-param>
         </xsl:apply-templates>
-        <xsl:text>;&nl;</xsl:text>
+        <xsl:text>;</xsl:text>
     </xsl:template>
 
     <!-- Алиас -->
     <xsl:template match="alias">
         <xsl:param name="mode"/>
 
-        <xsl:variable name="sld" select="ya:if(string(@sld), @sld, ya:if(string(ancestor::*/@sld), ancestor::*/@sld, $default/sld))"/>
-        <xsl:variable name="tld" select="ya:if(string(@tld), @tld, ya:if(string(ancestor::*/@tld), ancestor::*/@tld, $default/tld))"/>
+        <xsl:variable name="sld" select="ya:if(string(@sld), @sld, ya:if(string(../@sld), ../@sld, $default/sld))"/>
+        <xsl:variable name="tld" select="ya:if(string(@tld), @tld, ya:if(string(../@tld), ../@tld, $default/tld))"/>
 
         <xsl:if test="position() &gt; 1">
             <xsl:text> </xsl:text>
