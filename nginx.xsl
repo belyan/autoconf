@@ -38,7 +38,7 @@
         <xsl:apply-templates select="." mode="root"/>
         <xsl:apply-templates select="." mode="xscript"/>
         <xsl:apply-templates select="locations"/>
-        <xsl:apply-templates select="rewrites"/>
+        <xsl:apply-templates select="rewrites | redirects"/>
 
         <xsl:text>&nl;</xsl:text>
         <xsl:text>}</xsl:text>
