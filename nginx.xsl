@@ -38,7 +38,8 @@
         <xsl:apply-templates select="." mode="root"/>
         <xsl:apply-templates select="." mode="xscript"/>
         <xsl:apply-templates select="locations"/>
-        <xsl:apply-templates select="rewrites | redirects"/>
+        <xsl:apply-templates select="redirects"/>
+        <xsl:apply-templates select="rewrites"/>
 
         <xsl:text>&nl;</xsl:text>
         <xsl:text>}</xsl:text>
@@ -56,18 +57,18 @@
 
     <!-- Хост -->
     <xsl:template match="host">
-        <xsl:variable name="name" select="name"/>
-        <xsl:variable name="sld" select="ya:if(string(@sld), @sld, $default/sld)"/>
-        <xsl:variable name="tld" select="ya:if(string(@tld), @tld, $default/tld)"/>
+        <xsl:variable name="host-name" select="name"/>
+        <xsl:variable name="host-sld" select="ya:if(string(@sld), @sld, $default/sld)"/>
+        <xsl:variable name="host-tld" select="ya:if(string(@tld), @tld, $default/tld)"/>
 
         <xsl:text>&nl;&tab;</xsl:text>
         <xsl:text>server_name </xsl:text>
-        <xsl:for-each select="str:split($tld, ',')">
+        <xsl:for-each select="str:split($host-tld, ',')">
             <xsl:if test="position() &gt; 1">
                 <xsl:text> </xsl:text>
             </xsl:if>
-            <xsl:apply-templates select="$name">
-                <xsl:with-param name="sld" select="$sld"/>
+            <xsl:apply-templates select="$host-name">
+                <xsl:with-param name="sld" select="$host-sld"/>
                 <xsl:with-param name="tld" select="."/>
             </xsl:apply-templates>
         </xsl:for-each>
@@ -75,15 +76,15 @@
     </xsl:template>
 
     <xsl:template match="host" mode="regexp">
-        <xsl:variable name="name" select="name"/>
-        <xsl:variable name="sld" select="ya:if(string(@sld), @sld, $default/sld)"/>
-        <xsl:variable name="tld" select="ya:if(string(@tld), @tld, $default/tld)"/>
+        <xsl:variable name="host-name" select="name"/>
+        <xsl:variable name="host-sld" select="ya:if(string(@sld), @sld, $default/sld)"/>
+        <xsl:variable name="host-tld" select="ya:if(string(@tld), @tld, $default/tld)"/>
 
-        <xsl:for-each select="str:split($tld, ',')">
+        <xsl:for-each select="str:split($host-tld, ',')">
             <xsl:text>&nl;&tab;</xsl:text>
             <xsl:text>server_name ~^</xsl:text>
-            <xsl:apply-templates select="$name">
-                <xsl:with-param name="sld" select="$sld"/>
+            <xsl:apply-templates select="$host-name">
+                <xsl:with-param name="sld" select="$host-sld"/>
                 <xsl:with-param name="tld" select="."/>
                 <xsl:with-param name="mode">regexp</xsl:with-param>
             </xsl:apply-templates>
@@ -175,13 +176,13 @@
 
     <!-- Алиасы хоста -->
     <xsl:template match="host" mode="aliases">
-        <xsl:variable name="name" select="name"/>
-        <xsl:variable name="sld" select="ya:if(string(@sld), @sld, $default/sld)"/>
-        <xsl:variable name="tld" select="ya:if(string(@tld), @tld, $default/tld)"/>
+        <xsl:variable name="host-name" select="name"/>
+        <xsl:variable name="host-sld" select="ya:if(string(@sld), @sld, $default/sld)"/>
+        <xsl:variable name="host-tld" select="ya:if(string(@tld), @tld, $default/tld)"/>
 
-        <xsl:for-each select="str:split($tld, ',')">
-            <xsl:apply-templates select="$name" mode="aliases">
-                <xsl:with-param name="sld" select="$sld"/>
+        <xsl:for-each select="str:split($host-tld, ',')">
+            <xsl:apply-templates select="$host-name" mode="aliases">
+                <xsl:with-param name="sld" select="$host-sld"/>
                 <xsl:with-param name="tld" select="."/>
             </xsl:apply-templates>
         </xsl:for-each>
@@ -207,10 +208,16 @@
         <!-- TODO: Мультидоменные алиасы -->
         <xsl:choose>
             <xsl:when test="string(../aliases/@tld)">
-                <xsl:apply-templates select="../aliases[@tld = $tld]"/>
+                <xsl:apply-templates select="../aliases[@tld = $tld]">
+                    <xsl:with-param name="sld" select="$sld"/>
+                    <xsl:with-param name="tld" select="$tld"/>
+                </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:apply-templates select="../aliases"/>
+                <xsl:apply-templates select="../aliases">
+                    <xsl:with-param name="sld" select="$sld"/>
+                    <xsl:with-param name="tld" select="$tld"/>
+                </xsl:apply-templates>
             </xsl:otherwise>
         </xsl:choose>
 
@@ -227,13 +234,25 @@
 
     <!-- Список алиасов -->
     <xsl:template match="aliases">
-        <xsl:text>&nl;&tab;</xsl:text>
-        <xsl:text>server_name </xsl:text>
-        <xsl:apply-templates select="alias"/>
-        <xsl:text>;</xsl:text>
+        <xsl:param name="sld"/>
+        <xsl:param name="tld"/>
+
+        <xsl:variable name="aliases-sld" select="ya:if(string(@sld), @sld, $sld)"/>
+        <xsl:variable name="aliases-tld" select="ya:if(string(@tld), @tld, $tld)"/>
+
         <xsl:text>&nl;&tab;</xsl:text>
         <xsl:text>server_name </xsl:text>
         <xsl:apply-templates select="alias">
+            <xsl:with-param name="sld" select="$aliases-sld"/>
+            <xsl:with-param name="tld" select="$aliases-tld"/>
+        </xsl:apply-templates>
+        <xsl:text>;</xsl:text>
+        <xsl:text>&nl;&tab;</xsl:text>
+
+        <xsl:text>server_name </xsl:text>
+        <xsl:apply-templates select="alias">
+            <xsl:with-param name="sld" select="$aliases-sld"/>
+            <xsl:with-param name="tld" select="$aliases-tld"/>
             <xsl:with-param name="mode">www</xsl:with-param>
         </xsl:apply-templates>
         <xsl:text>;</xsl:text>
@@ -241,10 +260,12 @@
 
     <!-- Алиас -->
     <xsl:template match="alias">
+        <xsl:param name="sld"/>
+        <xsl:param name="tld"/>
         <xsl:param name="mode"/>
 
-        <xsl:variable name="sld" select="ya:if(string(@sld), @sld, ya:if(string(../@sld), ../@sld, $default/sld))"/>
-        <xsl:variable name="tld" select="ya:if(string(@tld), @tld, ya:if(string(../@tld), ../@tld, $default/tld))"/>
+        <xsl:variable name="alias-sld" select="ya:if(string(@sld), @sld, $sld)"/>
+        <xsl:variable name="alias-tld" select="ya:if(string(@tld), @tld, $tld)"/>
 
         <xsl:if test="position() &gt; 1">
             <xsl:text> </xsl:text>
@@ -254,9 +275,9 @@
         </xsl:if>
         <xsl:value-of select="."/>
         <xsl:text>.</xsl:text>
-        <xsl:value-of select="$sld"/>
+        <xsl:value-of select="$alias-sld"/>
         <xsl:text>.</xsl:text>
-        <xsl:value-of select="$tld"/>
+        <xsl:value-of select="$alias-tld"/>
     </xsl:template>
 
 </xsl:stylesheet>
