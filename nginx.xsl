@@ -205,21 +205,18 @@
         </xsl:apply-templates>
         <xsl:text>;</xsl:text>
 
-        <!-- TODO: Мультидоменные алиасы -->
-        <xsl:choose>
-            <xsl:when test="string(../aliases/@tld)">
-                <xsl:apply-templates select="../aliases[@tld = $tld]">
+        <!-- Мультидоменные алиасы -->
+        <xsl:variable name="aliases" select="../aliases"/>
+        <xsl:variable name="aliases-tld" select="ya:if(string($aliases/@tld), $aliases/@tld, $tld)"/>
+
+        <xsl:for-each select="str:split($aliases-tld, ',')">
+            <xsl:if test=". = $tld">
+                <xsl:apply-templates select="$aliases">
                     <xsl:with-param name="sld" select="$sld"/>
-                    <xsl:with-param name="tld" select="$tld"/>
+                    <xsl:with-param name="tld" select="."/>
                 </xsl:apply-templates>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:apply-templates select="../aliases">
-                    <xsl:with-param name="sld" select="$sld"/>
-                    <xsl:with-param name="tld" select="$tld"/>
-                </xsl:apply-templates>
-            </xsl:otherwise>
-        </xsl:choose>
+            </xsl:if>
+        </xsl:for-each>
 
         <xsl:text>&nl;&tab;</xsl:text>
         <xsl:text>rewrite ^/ http://</xsl:text>
