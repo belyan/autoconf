@@ -195,8 +195,8 @@
         <xsl:text>&nl;&nl;</xsl:text>
         <xsl:text>server {</xsl:text>
         <xsl:text>&nl;&tab;</xsl:text>
-	    <xsl:text>include listen;</xsl:text>
-        <xsl:text>&nl;&tab;</xsl:text>
+        <xsl:text>include listen;</xsl:text>
+        <xsl:text>&nl;&nl;&tab;</xsl:text>
         <xsl:text>server_name </xsl:text>
         <xsl:apply-templates select=".">
             <xsl:with-param name="sld" select="$sld"/>
@@ -252,7 +252,7 @@
             <xsl:with-param name="tld" select="$aliases-tld"/>
             <xsl:with-param name="mode">www</xsl:with-param>
         </xsl:apply-templates>
-        <xsl:text>;</xsl:text>
+        <xsl:text>;&nl;</xsl:text>
     </xsl:template>
 
     <!-- Алиас -->
